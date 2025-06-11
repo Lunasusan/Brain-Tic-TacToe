@@ -1,0 +1,31 @@
+<div class="container">
+  <h1>Tic Tac Toe</h1>
+  <div id="status">Player X's turn</div>
+  
+  <div class="controls">
+    <select id="mode">
+      <option value="pvp">Player vs Player</option>
+      <option value="ai">Player vs AI</option>
+    </select>
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button id="restart-btn">Restart Game</button>
+    <button id="reset-scores">Reset Scores</button>
+  </div>
+
+  <div class="scoreboard">
+    <div id="score-x">X: 0</div>
+    <div id="score-o">O: 0</div>
+    <div id="score-draw">Draw: 0</div>
+  </div>
+
+  <div id="board"></div>
+
+  <!-- Optional audio elements -->
+  <audio id="click-sound" src="click.mp3"></audio>
+  <audio id="win-sound" src="win.mp3"></audio>
+  <audio id="draw-sound" src="draw.mp3"></audio>
+</div>

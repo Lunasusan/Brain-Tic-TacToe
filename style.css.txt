@@ -1,0 +1,138 @@
+/General Reset/
+{
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+}
+
+.container {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  width: 360px;
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 1.8em;
+  color: #444;
+}
+
+#status {
+  font-size: 1.1em;
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.controls {
+  margin-bottom: 15px;
+}
+
+.controls select,
+.controls button {
+  padding: 8px 12px;
+  margin: 5px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.controls button {
+  background-color: #6C63FF;
+  color: white;
+}
+
+.controls button:hover {
+  background-color: #574fcf;
+}
+
+.controls select {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.cell {
+  width: 100px;
+  height: 100px;
+  background-color: #fefefe;
+  border: 2px solid #ccc;
+  font-size: 2em;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+  border-radius: 10px;
+}
+
+.cell:hover {
+  background-color: #f0f8ff;
+  cursor: pointer;
+}
+
+.cell.win {
+  background-color: #C1F9C1;
+  color: #2E7D32;
+}
+
+.cell.clicked {
+  animation: pulse 0.3s ease;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.scoreboard {
+  display: flex;
+  justify-content: space-around;
+  font-weight: bold;
+  margin-bottom: 10px;
+  gap: 5px;
+}
+
+.scoreboard div {
+  background-color: #f4f4f4;
+  padding: 10px 12px;
+  border-radius: 10px;
+  width: 100%;
+  transition: background 0.3s;
+}
+
+.scoreboard div:hover {
+  background-color: #e0e0e0;
+}
+
+@media (max-width: 400px) {
+  .container {
+    width: 95%;
+  }
+  .cell {
+    width: 80px;
+    height: 80px;
+    font-size: 1.5em;
+  }
+}

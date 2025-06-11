@@ -1,0 +1,232 @@
+const board = document.getElementById('board');
+const statusText = document.getElementById('status');
+const restartBtn = document.getElementById('restart-btn');
+const resetScoresBtn = document.getElementById('reset-scores');
+const difficultySelect = document.getElementById('difficulty');
+const modeSelect = document.getElementById('mode');
+
+const clickSound = document.getElementById('click-sound');
+const winSound = document.getElementById('win-sound');
+const drawSound = document.getElementById('draw-sound');
+
+let scoreX = 0, scoreO = 0, scoreDraw = 0;
+let currentPlayer = 'X';
+let gameActive = true;
+let gameState = Array(9).fill("");
+
+const winningConditions = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
+];
+
+// 🔁 Event listeners
+restartBtn.addEventListener('click', restartGame);
+resetScoresBtn.addEventListener('click', resetScores);
+modeSelect.addEventListener('change', restartGame);
+
+// 🟦 Build board
+function createBoard() {
+  board.innerHTML = "";
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.index = i;
+    cell.addEventListener('click', handleCellClick);
+    board.appendChild(cell);
+  }
+}
+
+// 🎯 Cell click
+function handleCellClick(e) {
+  const idx = +e.target.dataset.index;
+  if (!gameActive || gameState[idx]) return;
+
+  playMove(idx, currentPlayer);
+
+  const win = checkWinner();
+  if (win) return handleWin(win);
+  if (!gameState.includes("")) return handleDraw();
+
+  currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+  statusText.textContent = `Player ${currentPlayer}'s turn`;
+
+  if (modeSelect.value === 'ai' && currentPlayer === 'O') {
+    setTimeout(aiMove, 400);
+  }
+}
+
+// ✍️ Move logic
+function playMove(idx, player) {
+  gameState[idx] = player;
+  const cell = board.querySelector(`[data-index="${idx}"]`);
+  cell.textContent = player;
+  cell.classList.add('clicked');
+  clickSound?.cloneNode(true).play();
+  setTimeout(() => cell.classList.remove('clicked'), 250);
+}
+
+// 🏆 Handle win
+function handleWin(cells) {
+  cells.forEach(i => board.querySelector(`[data-index="${i}"]`).classList.add('win'));
+  statusText.textContent = `Player ${currentPlayer} wins!`;
+  gameActive = false;
+
+  if (currentPlayer === 'X') scoreX++; else scoreO++;
+  winSound?.cloneNode(true).play();
+  saveScores();
+  updateScoreboard();
+  setTimeout(restartGame, 2500);
+}
+
+// 🤝 Handle draw
+function handleDraw() {
+  statusText.textContent = "It's a draw!";
+  gameActive = false;
+  scoreDraw++;
+  drawSound?.cloneNode(true).play();
+  saveScores();
+  updateScoreboard();
+  setTimeout(restartGame, 2500);
+}
+
+// 🧠 AI move logic
+function aiMove() {
+  const available = gameState.flatMap((v,i)=> v ? [] : [i]);
+  let move;
+
+  if (difficultySelect.value === 'easy') {
+    move = available[Math.floor(Math.random() * available.length)];
+  } else if (difficultySelect.value === 'medium') {
+    move = findWinBlock('O') || findWinBlock('X') || available[Math.floor(Math.random() * available.length)];
+  } else {
+    move = getBestMove();
+  }
+
+  if (move !== undefined) playMove(move, currentPlayer);
+  const win = checkWinner();
+  if (win) return handleWin(win);
+  if (!gameState.includes("")) return handleDraw();
+
+  currentPlayer = 'X';
+  statusText.textContent = `Player ${currentPlayer}'s turn`;
+}
+
+// 🔍 Win/block check
+function findWinBlock(player) {
+  for (let [a, b, c] of winningConditions) {
+    const line = [gameState[a], gameState[b], gameState[c]];
+    if (line.filter(v => v === player).length === 2 && line.includes("")) {
+      return [a, b, c].find(i => !gameState[i]);
+    }
+  }
+  return null;
+}
+
+// 🤖 Minimax for Hard mode
+function getBestMove() {
+  let bestScore = -Infinity, move;
+  for (let i = 0; i < 9; i++) {
+    if (!gameState[i]) {
+      gameState[i] = 'O';
+      let score = minimax(gameState, 0, false);
+      gameState[i] = '';
+      if (score > bestScore) {
+        bestScore = score;
+        move = i;
+      }
+    }
+  }
+  return move;
+}
+
+function minimax(state, depth, isMax) {
+  const result = checkStaticWinner(state);
+  if (result !== null) return { X: -1, O: 1, draw: 0 }[result];
+
+  if (isMax) {
+    let maxEval = -Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (!state[i]) {
+        state[i] = 'O';
+        const eval = minimax(state, depth + 1, false);
+        state[i] = '';
+        maxEval = Math.max(maxEval, eval);
+      }
+    }
+    return maxEval;
+  } else {
+    let minEval = Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (!state[i]) {
+        state[i] = 'X';
+        const eval = minimax(state, depth + 1, true);
+        state[i] = '';
+        minEval = Math.min(minEval, eval);
+      }
+    }
+    return minEval;
+  }
+}
+
+function checkStaticWinner(state) {
+  for (let [a, b, c] of winningConditions) {
+    if (state[a] && state[a] === state[b] && state[a] === state[c]) {
+      return state[a];
+    }
+  }
+  return state.includes("") ? null : "draw";
+}
+
+// ✅ Winner check
+function checkWinner() {
+  return winningConditions.find(([a, b, c]) =>
+    gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]
+  ) || null;
+}
+
+// 🔁 Restart game
+function restartGame() {
+  gameState.fill("");
+  gameActive = true;
+  currentPlayer = 'X';
+  statusText.textContent = `Player ${currentPlayer}'s turn`;
+  board.querySelectorAll('.cell').forEach(cell => {
+    cell.textContent = "";
+    cell.classList.remove('win');
+  });
+  if (modeSelect.value === 'ai' && currentPlayer === 'O') {
+    setTimeout(aiMove, 400);
+  }
+}
+
+// 💾 LocalStorage: Save & Load Scores
+function saveScores() {
+  localStorage.setItem('ttt_score_x', scoreX);
+  localStorage.setItem('ttt_score_o', scoreO);
+  localStorage.setItem('ttt_score_draw', scoreDraw);
+}
+
+function loadScores() {
+  scoreX = +localStorage.getItem('ttt_score_x') || 0;
+  scoreO = +localStorage.getItem('ttt_score_o') || 0;
+  scoreDraw = +localStorage.getItem('ttt_score_draw') || 0;
+}
+
+function updateScoreboard() {
+  document.getElementById('score-x').textContent = scoreX;
+  document.getElementById('score-o').textContent = scoreO;
+  document.getElementById('score-draw').textContent = scoreDraw;
+}
+
+function resetScores() {
+  scoreX = scoreO = scoreDraw = 0;
+  saveScores();
+  updateScoreboard();
+}
+
+// ▶️ Game start
+loadScores();
+createBoard();
+updateScoreboard();
+statusText.textContent = `Player ${currentPlayer}'s turn`;
